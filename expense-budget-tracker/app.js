@@ -96,7 +96,7 @@ function renderAccountsList() {
 
   el.querySelectorAll('[data-delete-account]').forEach((btn) => {
     btn.addEventListener('click', async () => {
-      if (!confirm('Delete this account and all its transactions?')) return;
+      if (!armDelete(btn)) return;
       try {
         await api(`/api/accounts/${btn.dataset.deleteAccount}`, { method: 'DELETE' });
         showToast('Account deleted');
@@ -106,6 +106,19 @@ function renderAccountsList() {
       }
     });
   });
+}
+
+// Two-click delete instead of a blocking confirm() dialog.
+function armDelete(btn) {
+  if (btn.classList.contains('confirm')) return true;
+  const label = btn.textContent;
+  btn.classList.add('confirm');
+  btn.textContent = 'Delete account + transactions?';
+  setTimeout(() => {
+    btn.classList.remove('confirm');
+    btn.textContent = label;
+  }, 3000);
+  return false;
 }
 
 function populateCategorySelect(select, type) {

@@ -288,6 +288,7 @@ button.secondary {
   border: 1px solid var(--border);
 }
 button.secondary:hover { background: var(--bg); color: var(--text); }
+button.secondary.confirm { background: var(--negative-bg); color: var(--negative); border-color: var(--negative); }
 button:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .hidden { display: none !important; }

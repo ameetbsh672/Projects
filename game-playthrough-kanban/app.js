@@ -20,9 +20,18 @@ const detailSave = document.getElementById('detail-save');
 const detailDelete = document.getElementById('detail-delete');
 const detailClose = document.getElementById('detail-close');
 
+const toast = document.getElementById('toast');
+
 let games = [];
 let activeGameId = null;
 let dragGameId = null;
+
+function showToast(message) {
+  toast.textContent = message;
+  toast.classList.remove('hidden');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => toast.classList.add('hidden'), 3500);
+}
 
 async function api(path, options) {
   const res = await fetch(path, options);
@@ -181,7 +190,7 @@ addForm.addEventListener('submit', async (e) => {
     titleInput.focus();
   } catch (err) {
     console.error(err);
-    alert('Could not add game: ' + err.message);
+    showToast('Could not add game: ' + err.message);
   } finally {
     submitBtn.disabled = false;
   }
@@ -199,7 +208,14 @@ function openDetail(id) {
   detailTitle.focus();
 }
 
+function disarmDelete() {
+  clearTimeout(disarmDelete._t);
+  detailDelete.classList.remove('confirm');
+  detailDelete.textContent = 'Delete game';
+}
+
 function closeDetail() {
+  disarmDelete();
   overlay.classList.add('hidden');
   activeGameId = null;
 }
@@ -213,7 +229,8 @@ detailSave.addEventListener('click', async () => {
   if (activeGameId == null) return;
   const title = detailTitle.value.trim();
   if (!title) {
-    alert('Title cannot be empty.');
+    showToast('Title cannot be empty.');
+    detailTitle.focus();
     return;
   }
   detailSave.disabled = true;
@@ -233,7 +250,7 @@ detailSave.addEventListener('click', async () => {
     closeDetail();
   } catch (err) {
     console.error(err);
-    alert('Could not save changes: ' + err.message);
+    showToast('Could not save changes: ' + err.message);
   } finally {
     detailSave.disabled = false;
   }
@@ -241,7 +258,14 @@ detailSave.addEventListener('click', async () => {
 
 detailDelete.addEventListener('click', async () => {
   if (activeGameId == null) return;
-  if (!confirm('Delete this game from your board?')) return;
+  // Two-click delete instead of a blocking confirm() dialog.
+  if (!detailDelete.classList.contains('confirm')) {
+    detailDelete.classList.add('confirm');
+    detailDelete.textContent = 'Click again to delete';
+    disarmDelete._t = setTimeout(disarmDelete, 3000);
+    return;
+  }
+  disarmDelete();
   try {
     await api(`/api/games/${activeGameId}`, { method: 'DELETE' });
     games = games.filter((g) => g.id !== activeGameId);
@@ -249,7 +273,7 @@ detailDelete.addEventListener('click', async () => {
     closeDetail();
   } catch (err) {
     console.error(err);
-    alert('Could not delete: ' + err.message);
+    showToast('Could not delete: ' + err.message);
   }
 });
 
