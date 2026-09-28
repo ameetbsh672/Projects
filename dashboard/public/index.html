@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>App Dashboard</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="shell">
+    <header class="top">
+      <div>
+        <h1>Local Apps</h1>
+        <p class="subtitle">Start, stop, and open your apps from one place.</p>
+      </div>
+      <div class="summary" id="summary"></div>
+    </header>
+
+    <main id="app-list" class="app-grid"></main>
+  </div>
+
+  <template id="card-template">
+    <article class="card">
+      <div class="card-top">
+        <div class="monogram"></div>
+        <div class="meta">
+          <h2 class="app-name"></h2>
+          <a class="app-port" target="_blank" rel="noopener"></a>
+        </div>
+        <span class="status"><span class="dot"></span><span class="status-text"></span></span>
+      </div>
+      <div class="card-actions">
+        <button class="btn toggle-btn"></button>
+        <a class="btn open-btn" target="_blank" rel="noopener">Open ↗</a>
+      </div>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>

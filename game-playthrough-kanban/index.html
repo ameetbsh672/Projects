@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Game Playthrough Kanban</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>🎮 Playthrough Board</h1>
+    <form id="add-form" class="add-form">
+      <input type="text" id="title-input" placeholder="Game title…" autocomplete="off" required />
+      <input type="text" id="platform-input" placeholder="Platform (optional)" autocomplete="off" />
+      <button type="submit">Add game</button>
+    </form>
+  </header>
+
+  <main id="board" class="board" aria-live="polite">
+    <!-- columns rendered by app.js -->
+  </main>
+
+  <div id="detail-overlay" class="overlay hidden">
+    <div class="detail-card">
+      <button id="detail-close" class="icon-btn" aria-label="Close">✕</button>
+      <input type="text" id="detail-title" class="detail-title-input" />
+      <input type="text" id="detail-platform" class="detail-platform-input" placeholder="Platform" />
+      <label for="detail-status">Status</label>
+      <select id="detail-status">
+        <option value="backlog">Backlog</option>
+        <option value="downloading">Downloading</option>
+        <option value="playing">Playing</option>
+        <option value="completed">Completed</option>
+        <option value="dropped">Dropped</option>
+      </select>
+      <label for="detail-notes">Notes</label>
+      <textarea id="detail-notes" rows="6" placeholder="Progress notes, thoughts, where you left off…"></textarea>
+      <div class="detail-actions">
+        <button id="detail-delete" class="danger-btn">Delete game</button>
+        <button id="detail-save" class="primary-btn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

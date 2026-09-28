@@ -1,0 +1,197 @@
+:root {
+  --bg: #0d0f13;
+  --surface: #161920;
+  --surface-2: #1d212a;
+  --border: #272b35;
+  --text: #e8eaee;
+  --muted: #8b93a1;
+  --green: #3ecf8e;
+  --red: #f06a6a;
+  --amber: #f5b945;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
+  font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f5f6f8;
+    --surface: #ffffff;
+    --surface-2: #f0f2f5;
+    --border: #e2e5ea;
+    --text: #15181e;
+    --muted: #667080;
+    --green: #16a36a;
+    --red: #d64545;
+    --amber: #c48a10;
+    --shadow: 0 1px 2px rgba(0,0,0,.05), 0 8px 24px rgba(0,0,0,.06);
+    color-scheme: light;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.shell {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 40px 24px 64px;
+}
+
+.top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+
+h1 {
+  margin: 0 0 4px;
+  font-size: 30px;
+  letter-spacing: -0.02em;
+}
+
+.subtitle { margin: 0; color: var(--muted); }
+
+.summary {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 14px;
+}
+.summary strong { color: var(--green); }
+
+.app-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: var(--shadow);
+  transition: transform .15s ease, border-color .15s ease;
+  overflow: hidden;
+}
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: hsl(var(--h) 70% 60%);
+  opacity: .35;
+}
+.card.is-running::before { opacity: 1; }
+.card:hover { transform: translateY(-2px); border-color: hsl(var(--h) 50% 50% / .5); }
+
+.card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.monogram {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 15px;
+  color: hsl(var(--h) 70% 65%);
+  background: hsl(var(--h) 70% 55% / .14);
+}
+
+.meta { min-width: 0; flex: 1; }
+
+.app-name {
+  margin: 0 0 2px;
+  font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-port {
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.app-port:hover { color: var(--text); text-decoration: underline; }
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+}
+.is-running .dot {
+  background: var(--green);
+  box-shadow: 0 0 0 0 var(--green);
+  animation: pulse 2s infinite;
+}
+.is-running .status-text { color: var(--green); }
+.status.busy .dot { background: var(--amber); animation: blink 0.8s infinite alternate; box-shadow: none; }
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--green) 60%, transparent); }
+  70% { box-shadow: 0 0 0 7px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+@keyframes blink { to { opacity: .3; } }
+
+.card-actions { display: flex; gap: 8px; }
+
+.btn {
+  flex: 1;
+  padding: 9px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  text-decoration: none;
+  transition: filter .15s ease, background .15s ease, opacity .15s ease;
+}
+.btn:hover:not(:disabled):not(.disabled) { filter: brightness(1.12); }
+.btn:focus-visible { outline: 2px solid hsl(var(--h) 70% 60%); outline-offset: 2px; }
+
+.toggle-btn.start { background: var(--green); border-color: var(--green); color: #07130d; font-weight: 600; }
+.toggle-btn.stop:hover:not(:disabled) { background: color-mix(in srgb, var(--red) 15%, var(--surface-2)); color: var(--red); border-color: var(--red); filter: none; }
+
+.btn:disabled, .btn.disabled {
+  opacity: .4;
+  cursor: not-allowed;
+  pointer-events: none;
+}

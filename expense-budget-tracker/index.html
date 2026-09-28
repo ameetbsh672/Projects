@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ledger — Expenses, Budgets &amp; Accounts</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <h1>Ledger</h1>
+      <nav class="tabs" id="tabs">
+        <button class="tab-btn active" data-view="dashboard">Dashboard</button>
+        <button class="tab-btn" data-view="transactions">Transactions</button>
+        <button class="tab-btn" data-view="accounts">Accounts</button>
+        <button class="tab-btn" data-view="budgets">Budgets</button>
+      </nav>
+    </header>
+
+    <main id="content">
+      <!-- Dashboard -->
+      <section id="view-dashboard" class="view active">
+        <div class="stat-row">
+          <div class="stat-card">
+            <span class="stat-label">Total balance</span>
+            <span class="stat-value" id="stat-total-balance">—</span>
+          </div>
+          <div class="stat-card positive">
+            <span class="stat-label">Income this month</span>
+            <span class="stat-value" id="stat-income">—</span>
+          </div>
+          <div class="stat-card negative">
+            <span class="stat-label">Spent this month</span>
+            <span class="stat-value" id="stat-expense">—</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Net this month</span>
+            <span class="stat-value" id="stat-net">—</span>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="panel">
+            <h2>Spending by category</h2>
+            <div id="category-breakdown" class="category-breakdown">
+              <p class="empty-state">No expenses yet this month.</p>
+            </div>
+          </div>
+          <div class="panel">
+            <h2>Budget status</h2>
+            <div id="dashboard-budgets" class="budget-list">
+              <p class="empty-state">No budgets set. Add one in the Budgets tab.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Recent transactions</h2>
+          <div id="recent-transactions" class="tx-list">
+            <p class="empty-state">No transactions yet.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Transactions -->
+      <section id="view-transactions" class="view">
+        <div class="panel form-panel">
+          <h2 id="tx-form-title">Add transaction</h2>
+          <form id="tx-form" class="tx-form">
+            <input type="hidden" id="tx-id" />
+            <div class="field-row">
+              <label>Type
+                <select id="tx-type" required>
+                  <option value="expense">Expense</option>
+                  <option value="income">Income</option>
+                  <option value="transfer">Transfer</option>
+                </select>
+              </label>
+              <label>Date
+                <input type="date" id="tx-date" required />
+              </label>
+              <label>Amount
+                <input type="number" id="tx-amount" step="0.01" min="0" placeholder="0.00" required />
+              </label>
+            </div>
+            <div class="field-row">
+              <label>Account
+                <select id="tx-account" required></select>
+              </label>
+              <label id="tx-transfer-account-wrap" class="hidden">To account
+                <select id="tx-transfer-account"></select>
+              </label>
+              <label id="tx-category-wrap">Category
+                <select id="tx-category"></select>
+              </label>
+            </div>
+            <div class="field-row">
+              <label class="grow">Description
+                <input type="text" id="tx-description" placeholder="Optional note" />
+              </label>
+            </div>
+            <div class="form-actions">
+              <button type="submit" id="tx-submit-btn">Add transaction</button>
+              <button type="button" id="tx-cancel-btn" class="secondary hidden">Cancel edit</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h2>All transactions</h2>
+            <select id="tx-filter-account">
+              <option value="">All accounts</option>
+            </select>
+          </div>
+          <div id="all-transactions" class="tx-list">
+            <p class="empty-state">No transactions yet.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Accounts -->
+      <section id="view-accounts" class="view">
+        <div class="panel form-panel">
+          <h2>Add account</h2>
+          <form id="account-form" class="tx-form">
+            <div class="field-row">
+              <label class="grow">Name
+                <input type="text" id="account-name" placeholder="e.g. Credit Card" required />
+              </label>
+              <label>Type
+                <select id="account-type">
+                  <option value="checking">Checking</option>
+                  <option value="savings">Savings</option>
+                  <option value="credit">Credit</option>
+                  <option value="cash">Cash</option>
+                  <option value="investment">Investment</option>
+                </select>
+              </label>
+              <label>Starting balance
+                <input type="number" id="account-starting-balance" step="0.01" value="0" />
+              </label>
+            </div>
+            <div class="form-actions">
+              <button type="submit">Add account</button>
+            </div>
+          </form>
+        </div>
+        <div class="panel">
+          <h2>Your accounts</h2>
+          <div id="accounts-list" class="accounts-list"></div>
+        </div>
+      </section>
+
+      <!-- Budgets -->
+      <section id="view-budgets" class="view">
+        <div class="panel form-panel">
+          <h2>Set a monthly budget</h2>
+          <form id="budget-form" class="tx-form">
+            <div class="field-row">
+              <label class="grow">Category
+                <select id="budget-category"></select>
+              </label>
+              <label>Monthly limit
+                <input type="number" id="budget-limit" step="0.01" min="0" placeholder="0.00" required />
+              </label>
+            </div>
+            <div class="form-actions">
+              <button type="submit">Save budget</button>
+            </div>
+          </form>
+        </div>
+        <div class="panel">
+          <h2>This month's budgets</h2>
+          <div id="budgets-list" class="budget-list">
+            <p class="empty-state">No budgets yet.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

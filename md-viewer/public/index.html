@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MD Viewer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">
+          <h1>MD Viewer</h1>
+          <button id="theme-toggle" class="theme-toggle" type="button" title="Toggle dark mode" aria-label="Toggle dark mode">🌙</button>
+        </div>
+        <form id="folder-form" class="folder-form">
+          <input id="folder-input" type="text" placeholder="Path to folder…" autocomplete="off" />
+          <button type="submit">Set</button>
+        </form>
+        <p id="folder-status" class="folder-status"></p>
+      </div>
+      <nav id="tree" class="tree" aria-label="Markdown files">
+        <p class="tree-empty">Loading…</p>
+      </nav>
+    </aside>
+    <main class="content">
+      <div id="doc" class="doc">
+        <div class="doc-empty">
+          <p>Select a file on the left to view it.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="vendor/mermaid.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

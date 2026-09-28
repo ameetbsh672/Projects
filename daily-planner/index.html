@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Planner</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="date-nav">
+      <button id="prevDay" class="nav-btn" aria-label="Previous day">&larr;</button>
+      <div class="date-display">
+        <input type="date" id="datePicker">
+        <span id="dateLabel" class="date-label"></span>
+      </div>
+      <button id="nextDay" class="nav-btn" aria-label="Next day">&rarr;</button>
+    </div>
+    <button id="todayBtn" class="today-btn">Today</button>
+  </header>
+
+  <main class="layout">
+    <section class="schedule-panel">
+      <h2 class="panel-title">Schedule</h2>
+      <div id="scheduleList" class="schedule-list"></div>
+    </section>
+
+    <section class="tasks-panel">
+      <h2 class="panel-title">Tasks</h2>
+      <form id="taskForm" class="task-form">
+        <input type="text" id="taskInput" placeholder="Add a task…" autocomplete="off" maxlength="200">
+        <select id="taskPriority">
+          <option value="high">High</option>
+          <option value="normal" selected>Normal</option>
+          <option value="low">Low</option>
+        </select>
+        <button type="submit" class="add-btn">Add</button>
+      </form>
+      <div id="taskList" class="task-list"></div>
+      <p id="emptyTasks" class="empty-state" hidden>No tasks yet. Add one above.</p>
+    </section>
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

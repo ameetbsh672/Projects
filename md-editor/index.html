@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MD Editor</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='%232f6f5e'/><path d='M3 11V5l2.5 3L8 5v6M11 5v6m-2-2 2 2 2-2' stroke='white' stroke-width='1.4' fill='none'/></svg>" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <button class="icon-btn" id="sidebar-toggle" title="Documents" aria-label="Toggle document list" aria-expanded="true">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" /></svg>
+      </button>
+      <input id="title" class="title-input" type="text" placeholder="Untitled" aria-label="Document title" maxlength="200" />
+      <span id="save-status" class="save-status" aria-live="polite"></span>
+      <div class="view-switch" role="group" aria-label="View mode">
+        <button data-view="edit" title="Editor only (Ctrl+1)">Edit</button>
+        <button data-view="split" title="Side by side (Ctrl+2)">Split</button>
+        <button data-view="preview" title="Preview only (Ctrl+3)">Preview</button>
+      </div>
+      <button class="icon-btn" id="help-toggle" title="Markdown help (Ctrl+/)" aria-label="Toggle help" aria-expanded="false">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5" /><path d="M7.8 7.8a2.2 2.2 0 1 1 3 2c-.6.3-.8.7-.8 1.3v.4" /><circle cx="10" cy="14.2" r=".6" class="fill" /></svg>
+      </button>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar" id="sidebar">
+        <button class="new-btn" id="new-doc">+ New document</button>
+        <ul class="doc-list" id="doc-list"></ul>
+      </aside>
+
+      <main class="workspace" id="workspace" data-view="split">
+        <div class="toolbar" id="toolbar" role="toolbar" aria-label="Formatting">
+          <button data-cmd="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+          <button data-cmd="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+          <button data-cmd="strike" title="Strikethrough"><s>S</s></button>
+          <span class="sep"></span>
+          <button data-cmd="h1" title="Heading 1">H1</button>
+          <button data-cmd="h2" title="Heading 2">H2</button>
+          <button data-cmd="h3" title="Heading 3">H3</button>
+          <span class="sep"></span>
+          <button data-cmd="link" title="Link (Ctrl+K)">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8.5 11.5a3 3 0 0 0 4.2 0l2.8-2.8a3 3 0 0 0-4.2-4.2l-1 1M11.5 8.5a3 3 0 0 0-4.2 0l-2.8 2.8a3 3 0 0 0 4.2 4.2l1-1" /></svg>
+          </button>
+          <button data-cmd="image" title="Image">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4" width="14" height="12" rx="1.5" /><circle cx="7.5" cy="8.5" r="1.3" /><path d="m3.5 14 4-4 3 3 2-2 4 4" /></svg>
+          </button>
+          <button data-cmd="code" title="Inline code (Ctrl+E)">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7 6-4 4 4 4M13 6l4 4-4 4" /></svg>
+          </button>
+          <button data-cmd="codeblock" title="Code block">{ }</button>
+          <span class="sep"></span>
+          <button data-cmd="ul" title="Bulleted list">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 5h9M8 10h9M8 15h9" /><circle cx="4" cy="5" r=".9" class="fill" /><circle cx="4" cy="10" r=".9" class="fill" /><circle cx="4" cy="15" r=".9" class="fill" /></svg>
+          </button>
+          <button data-cmd="ol" title="Numbered list">1.</button>
+          <button data-cmd="task" title="Task list">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3.5" width="5" height="5" rx="1" /><path d="m4 13.5 1.5 1.5L8 12.5M11 6h6M11 14h6" /></svg>
+          </button>
+          <button data-cmd="quote" title="Quote">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4v12M8 7h9M8 10h9M8 13h6" /></svg>
+          </button>
+          <button data-cmd="table" title="Table">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4" width="14" height="12" rx="1.5" /><path d="M3 8h14M3 12h14M10 4v12" /></svg>
+          </button>
+          <button data-cmd="hr" title="Horizontal rule">―</button>
+        </div>
+
+        <div class="panes">
+          <textarea id="editor" class="editor" spellcheck="true" aria-label="Markdown source" disabled placeholder="Loading…"></textarea>
+          <article id="preview" class="preview" aria-label="Preview"></article>
+        </div>
+
+        <footer class="statusbar">
+          <span id="stats"></span>
+          <span id="cursor-pos"></span>
+        </footer>
+
+        <div class="empty-state" id="empty-state" hidden>
+          <p>No documents yet.</p>
+          <button class="new-btn" id="empty-new">Create your first document</button>
+        </div>
+      </main>
+
+      <aside class="help" id="help" hidden aria-label="Markdown help">
+        <div class="help-head">
+          <h2>Markdown help</h2>
+          <button class="icon-btn" id="help-close" aria-label="Close help">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" /></svg>
+          </button>
+        </div>
+        <p class="help-hint">Click any example to insert it at the cursor.</p>
+        <div id="help-body"></div>
+        <h3>Shortcuts</h3>
+        <dl class="shortcuts">
+          <dt><kbd>Ctrl</kbd> <kbd>B</kbd></dt><dd>Bold</dd>
+          <dt><kbd>Ctrl</kbd> <kbd>I</kbd></dt><dd>Italic</dd>
+          <dt><kbd>Ctrl</kbd> <kbd>K</kbd></dt><dd>Link</dd>
+          <dt><kbd>Ctrl</kbd> <kbd>E</kbd></dt><dd>Inline code</dd>
+          <dt><kbd>Ctrl</kbd> <kbd>S</kbd></dt><dd>Save now</dd>
+          <dt><kbd>Ctrl</kbd> <kbd>1</kbd>/<kbd>2</kbd>/<kbd>3</kbd></dt><dd>Edit / Split / Preview</dd>
+          <dt><kbd>Ctrl</kbd> <kbd>/</kbd></dt><dd>Toggle this help</dd>
+          <dt><kbd>Tab</kbd> / <kbd>Shift</kbd> <kbd>Tab</kbd></dt><dd>Indent / outdent</dd>
+          <dt><kbd>Enter</kbd> in a list</dt><dd>Continue the list</dd>
+        </dl>
+      </aside>
+    </div>
+
+    <script src="markdown.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

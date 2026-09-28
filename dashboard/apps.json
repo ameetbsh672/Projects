@@ -1,0 +1,9 @@
+[
+  { "id": "daily-planner", "name": "Daily Planner", "dir": "../daily-planner", "port": 4173 },
+  { "id": "expense-budget-tracker", "name": "Ledger — Expenses & Budgets", "dir": "../expense-budget-tracker", "port": 4737 },
+  { "id": "game-playthrough-kanban", "name": "Game Playthrough Kanban", "dir": "../game-playthrough-kanban", "port": 4174 },
+  { "id": "hangman-longwords", "name": "Hangman: Long Words", "dir": "../hangman-longwords", "port": 4738 },
+  { "id": "youtube-downloader", "name": "YouTube Downloader", "dir": "../youtube-downloader", "port": 4175 },
+  { "id": "md-viewer", "name": "MD Viewer", "dir": "../md-viewer", "port": 4739 },
+  { "id": "md-editor", "name": "MD Editor", "dir": "../md-editor", "port": 4740 }
+]
