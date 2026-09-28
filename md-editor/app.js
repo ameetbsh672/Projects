@@ -54,8 +54,9 @@ async function save() {
   const payload = { title: titleEl.value, content: editor.value };
   state.dirty = false;
   setStatus('Saving…', 'pending');
-  state.inflight = api(`/documents/${id}`, { method: 'PUT', body: payload })
+  state.inflight = api(`/documents/${encodeURIComponent(id)}`, { method: 'PUT', body: payload })
     .then((doc) => {
+      renameEntry(id, doc.id);
       updateListEntry(doc);
       if (!state.dirty) setStatus('Saved', 'ok');
     })
@@ -110,12 +111,21 @@ function renderList() {
   workspace.classList.toggle('is-empty', empty);
 }
 
+// The title is the file name on the server, so renaming changes the id.
+function renameEntry(oldId, newId) {
+  if (oldId === newId) return;
+  const entry = state.docs.find((d) => d.id === oldId);
+  if (entry) entry.id = newId;
+  if (state.current === oldId) state.current = newId;
+  renderList();
+}
+
 function updateListEntry(doc) {
   const entry = state.docs.find((d) => d.id === doc.id);
   if (!entry) return;
   entry.title = doc.title;
   entry.updated_at = doc.updated_at;
-  const li = docList.querySelector(`li[data-id="${doc.id}"]`);
+  const li = docList.querySelector(`li[data-id="${CSS.escape(doc.id)}"]`);
   if (li) {
     li.querySelector('.doc-title').textContent = doc.title;
     li.querySelector('.doc-when').textContent = formatWhen(doc.updated_at);
@@ -143,7 +153,7 @@ async function deleteDoc(id) {
       while (state.inflight) await state.inflight;
       state.dirty = false;
     }
-    await api(`/documents/${id}`, { method: 'DELETE' });
+    await api(`/documents/${encodeURIComponent(id)}`, { method: 'DELETE' });
     state.docs = state.docs.filter((d) => d.id !== id);
     if (id === state.current) {
       state.current = null;
@@ -177,7 +187,7 @@ async function openDoc(id) {
   await save();
   if (state.dirty) return; // save failed; don't navigate away from unsaved work
   try {
-    const doc = await api(`/documents/${id}`);
+    const doc = await api(`/documents/${encodeURIComponent(id)}`);
     state.current = doc.id;
     renderList();
     showDoc(doc);
@@ -573,7 +583,7 @@ document.addEventListener('keydown', (e) => {
 // Flush a pending save if the tab is closed mid-edit.
 window.addEventListener('beforeunload', () => {
   if (!state.dirty || state.current == null) return;
-  fetch(`/api/documents/${state.current}`, {
+  fetch(`/api/documents/${encodeURIComponent(state.current)}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ title: titleEl.value, content: editor.value }),

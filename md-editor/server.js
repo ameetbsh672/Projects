@@ -1,7 +1,6 @@
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
-const { DatabaseSync } = require('node:sqlite');
 
 const PORT = 4740;
 const APP_DIR = __dirname;
@@ -18,31 +17,71 @@ Open the **Help** panel (\`?\` button or \`Ctrl+/\`) for a syntax cheat sheet �
 click any example there to insert it at the cursor.
 `;
 
-const db = new DatabaseSync(path.join(APP_DIR, 'data.db'));
-db.exec(`
-  CREATE TABLE IF NOT EXISTS documents (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL DEFAULT 'Untitled',
-    content TEXT NOT NULL DEFAULT '',
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-  )
-`);
+// Each document is stored as documents/<title>.md — the file name is the
+// title and doubles as the document id. updated_at comes from the file's mtime.
+const DOCS_DIR = path.join(APP_DIR, 'documents');
+fs.mkdirSync(DOCS_DIR, { recursive: true });
 
-// Seed one document on first run so the editor never opens empty-handed.
-if (db.prepare('SELECT COUNT(*) AS n FROM documents').get().n === 0) {
-  db.prepare('INSERT INTO documents (title, content) VALUES (?, ?)').run('Welcome', WELCOME);
+const docPath = (id) => path.join(DOCS_DIR, `${id}.md`);
+
+// Same "YYYY-MM-DD HH:MM:SS" (UTC) format the client expects.
+const sqlTime = (date) => date.toISOString().slice(0, 19).replace('T', ' ');
+
+function docIds() {
+  return fs
+    .readdirSync(DOCS_DIR)
+    .filter((f) => f.endsWith('.md'))
+    .map((f) => f.slice(0, -3));
 }
 
-const listDocs = db.prepare(
-  'SELECT id, title, updated_at FROM documents ORDER BY updated_at DESC, id DESC'
-);
-const getDoc = db.prepare('SELECT * FROM documents WHERE id = ?');
-const insertDoc = db.prepare('INSERT INTO documents (title, content) VALUES (?, ?)');
-const updateDoc = db.prepare(
-  "UPDATE documents SET title = ?, content = ?, updated_at = datetime('now') WHERE id = ?"
-);
-const deleteDoc = db.prepare('DELETE FROM documents WHERE id = ?');
+// Titles become file names, so strip characters that aren't safe in one.
+function fileSafe(title) {
+  const t = title.replace(/[\/\\:*?"<>|\x00-\x1f]/g, '-').replace(/^\.+/, '').trim();
+  return t || 'Untitled';
+}
+
+// Pick a free file name for `title`, appending " (2)", " (3)"… on clashes.
+// `self` is the doc being renamed, which may keep its own name.
+function uniqueId(title, self) {
+  const base = fileSafe(title);
+  const taken = new Set(docIds().map((id) => id.toLowerCase()));
+  if (self) taken.delete(self.toLowerCase());
+  let id = base;
+  for (let n = 2; taken.has(id.toLowerCase()); n++) id = `${base} (${n})`;
+  return id;
+}
+
+function getDoc(id) {
+  if (!docIds().includes(id)) return undefined;
+  const stat = fs.statSync(docPath(id));
+  return {
+    id,
+    title: id,
+    content: fs.readFileSync(docPath(id), 'utf8'),
+    created_at: sqlTime(stat.birthtime.getTime() ? stat.birthtime : stat.mtime),
+    updated_at: sqlTime(stat.mtime),
+  };
+}
+
+// Writes the doc, renaming its file if the title changed. Returns the new id.
+function writeDoc(id, title, content) {
+  const newId = uniqueId(title, id);
+  if (id && newId !== id) fs.renameSync(docPath(id), docPath(newId));
+  fs.writeFileSync(docPath(newId), content);
+  return newId;
+}
+
+function listDocs() {
+  return docIds()
+    .map(getDoc)
+    .sort((a, b) => b.updated_at.localeCompare(a.updated_at) || a.id.localeCompare(b.id))
+    .map(({ id, title, updated_at }) => ({ id, title, updated_at }));
+}
+
+const insertDoc = (title, content) => writeDoc(null, title, content);
+
+// Seed one document on first run so the editor never opens empty-handed.
+if (docIds().length === 0) insertDoc('Welcome', WELCOME);
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -84,22 +123,22 @@ function cleanTitle(title) {
 }
 
 async function handleApi(req, res, url) {
-  const match = url.pathname.match(/^\/api\/documents(?:\/(\d+))?$/);
+  const match = url.pathname.match(/^\/api\/documents(?:\/([^/]+))?$/);
   if (!match) return sendJson(res, 404, { error: 'Not found' });
-  const id = match[1] ? Number(match[1]) : null;
+  const id = match[1] ? decodeURIComponent(match[1]) : null;
 
   if (id === null) {
-    if (req.method === 'GET') return sendJson(res, 200, listDocs.all());
+    if (req.method === 'GET') return sendJson(res, 200, listDocs());
     if (req.method === 'POST') {
       const body = await readJson(req);
       const content = typeof body.content === 'string' ? body.content : '';
-      const { lastInsertRowid } = insertDoc.run(cleanTitle(body.title), content);
-      return sendJson(res, 201, getDoc.get(lastInsertRowid));
+      const newId = insertDoc(cleanTitle(body.title), content);
+      return sendJson(res, 201, getDoc(newId));
     }
     return sendJson(res, 405, { error: 'Method not allowed' });
   }
 
-  const existing = getDoc.get(id);
+  const existing = getDoc(id);
   if (!existing) return sendJson(res, 404, { error: 'Document not found' });
 
   if (req.method === 'GET') return sendJson(res, 200, existing);
@@ -107,11 +146,10 @@ async function handleApi(req, res, url) {
     const body = await readJson(req);
     const title = body.title !== undefined ? cleanTitle(body.title) : existing.title;
     const content = typeof body.content === 'string' ? body.content : existing.content;
-    updateDoc.run(title, content, id);
-    return sendJson(res, 200, getDoc.get(id));
+    return sendJson(res, 200, getDoc(writeDoc(id, title, content)));
   }
   if (req.method === 'DELETE') {
-    deleteDoc.run(id);
+    fs.unlinkSync(docPath(id));
     return sendJson(res, 200, { ok: true });
   }
   return sendJson(res, 405, { error: 'Method not allowed' });
